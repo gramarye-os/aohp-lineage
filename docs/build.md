@@ -10,7 +10,7 @@ the build scripts, not a transcription of the wiki. Disk: ~65 GB `.repo`, ~91 GB
 mkdir -p ~/lineage/android && cd ~/lineage/android
 repo init -u https://github.com/LineageOS/android.git -b lineage-23.2 --git-lfs --no-clone-bundle --partial-clone --clone-filter=blob:limit=10M
 mkdir -p .repo/local_manifests
-curl -fsSL https://raw.githubusercontent.com/injinj/local_manifests/lineage-23.2-aohp/aohp.xml -o .repo/local_manifests/aohp.xml
+curl -fsSL https://raw.githubusercontent.com/gramarye-os/local_manifests/lineage-23.2-aohp/aohp.xml -o .repo/local_manifests/aohp.xml
 repo sync -c -j8 --no-tags --no-clone-bundle --optimized-fetch --prune --retry-fetches=3
 ```
 

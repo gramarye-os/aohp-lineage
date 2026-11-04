@@ -56,7 +56,7 @@ skills — **no secrets**, `${ANTHROPIC_API_KEY}`-style references in `openclaw.
 
 Inside the env (this is `oc-bootstrap.sh` from the runs, minus the secret delivery — see the note below):
 ```bash
-curl -fsSL https://raw.githubusercontent.com/injinj/aohp-agents/main/bootstrap.sh | bash -s -- <github-user>/<config-repo> --secrets age --token-file /root/.secrets-tmp/token --passphrase-file /root/.secrets-tmp/pass
+curl -fsSL https://raw.githubusercontent.com/gramarye-os/aohp-agents/main/bootstrap.sh | bash -s -- <github-user>/<config-repo> --secrets age --token-file /root/.secrets-tmp/token --passphrase-file /root/.secrets-tmp/pass
 gh auth logout -h github.com
 shred -u /root/.secrets-tmp/pass /root/.secrets-tmp/token
 ```
