@@ -8,7 +8,7 @@ end in the same state.
 
 Terms: an **env** (= container, "sandbox") is a chroot of a rootfs template under `/data/aohp/envs/<name>`, sharing the
 phone's network namespace; **`aohp`** is the CLI that talks to the bridge (ships inside every template and in
-[injinj/aohp](https://github.com/gramarye-os/aohp) `cli/aohp/dist/aohp.js`); the gateway listens on **`127.0.0.1:18789`**
+[gramarye-os/aohp](https://github.com/gramarye-os/aohp) `cli/aohp/dist/aohp.js`); the gateway listens on **`127.0.0.1:18789`**
 and only one env can own that port at a time.
 
 ## A. On the phone (AOHP Driver wizard)
