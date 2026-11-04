@@ -1,6 +1,6 @@
 # Install on the OnePlus 13 (dodge, CPH2655) from a release
 
-Release: **[dodge-23.2-20261004-build1](https://github.com/injinj/aohp-lineage/releases/tag/dodge-23.2-20261004-build1)**.
+Release: **[dodge-23.2-20261004-build1](https://github.com/gramarye-os/aohp-lineage/releases/tag/dodge-23.2-20261004-build1)**.
 This is the sequence that was actually run on 2026-10-04 22:16–22:21 (script `op13-flash.sh`, log `REPORT-op13-flash.md`
 on chex), following the [LineageOS install wiki for dodge](https://wiki.lineageos.org/devices/dodge/install/) with the
 deviations noted. **Zero key presses on the phone were needed.**

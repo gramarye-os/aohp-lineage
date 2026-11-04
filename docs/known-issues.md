@@ -66,7 +66,7 @@ in the foreground. Each widening creates a new `openclaw nodes approve` request.
 
 ## Container templates
 - The 2026-10-05 ROMs carry the reproducible
-  [templates-20261005b](https://github.com/injinj/aohp-agents/releases/tag/templates-20261005b) Debian (407 MB / 1.38 GB
+  [templates-20261005b](https://github.com/gramarye-os/aohp-agents/releases/tag/templates-20261005b) Debian (407 MB / 1.38 GB
   uncompressed; the 2026-10-04 ROMs had the hand-built 617 MB predecessor). Fedora 44 (429 MB) is a sound alternative;
   **Arch is not recommended on-device** (>500 MB / 1.86 GB — over the RAM-inflation budget; pacman needs `DisableSandbox`;
   gdb's Guile mtime problem; third-party arm64 base image). A new template does not touch existing envs in /data.
@@ -129,8 +129,8 @@ in the foreground. Each widening creates a new `openclaw nodes approve` request.
 Built overnight 2026-10-05/06, **flashed and verified on both phones 2026-10-06 02:07–02:50 PDT**. Report: `/home/chris/lineage/logs/REPORT-build-6-4.md`.
 Both built rc=0 (dodge-4 6 min, build-6 17.5 min, incremental): `lineage-23.2-20261006-UNOFFICIAL-dodge.zip` sha `cd3bce64…`,
 `lineage-23.2-20261006-UNOFFICIAL-oriole.zip` sha `cbe60043…` (full lists `logs/artifacts-dodge-4.sha256`, `logs/artifacts-build-6.sha256`).
-Releases: [oriole-23.2-20261006-build6](https://github.com/injinj/aohp-lineage/releases/tag/oriole-23.2-20261006-build6),
-[dodge-23.2-20261006-build4](https://github.com/injinj/aohp-lineage/releases/tag/dodge-23.2-20261006-build4).
+Releases: [oriole-23.2-20261006-build6](https://github.com/gramarye-os/aohp-lineage/releases/tag/oriole-23.2-20261006-build6),
+[dodge-23.2-20261006-build4](https://github.com/gramarye-os/aohp-lineage/releases/tag/dodge-23.2-20261006-build4).
 **dodge build-5** (freeform feature XML, vendor/aohp `36d33ea`) is being built now and follows as its own release; it differs
 from build-4 only by that one XML.
 

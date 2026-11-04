@@ -1,6 +1,6 @@
 # Install on the Solana Saga (ingot, OSOM) from a release
 
-Release: **[ingot-23.2-20261018-build1](https://github.com/injinj/aohp-lineage/releases/tag/ingot-23.2-20261018-build1)**.
+Release: **[ingot-23.2-20261018-build1](https://github.com/gramarye-os/aohp-lineage/releases/tag/ingot-23.2-20261018-build1)**.
 This is the sequence that was actually run on 2026-10-17 (the first AOHP build for this device), following the
 [LineageOS install wiki for ingot](https://wiki.lineageos.org/devices/ingot/install/) with the deviations noted.
 The Saga is an **official LineageOS device**, so the wiki is authoritative for anything not covered here.

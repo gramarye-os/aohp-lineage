@@ -8,7 +8,7 @@ end in the same state.
 
 Terms: an **env** (= container, "sandbox") is a chroot of a rootfs template under `/data/aohp/envs/<name>`, sharing the
 phone's network namespace; **`aohp`** is the CLI that talks to the bridge (ships inside every template and in
-[injinj/aohp](https://github.com/injinj/aohp) `cli/aohp/dist/aohp.js`); the gateway listens on **`127.0.0.1:18789`**
+[injinj/aohp](https://github.com/gramarye-os/aohp) `cli/aohp/dist/aohp.js`); the gateway listens on **`127.0.0.1:18789`**
 and only one env can own that port at a time.
 
 ## A. On the phone (AOHP Driver wizard)
@@ -48,7 +48,7 @@ aohp sandbox exec oc bash -c "echo $(base64 -w0 myscript.sh) | base64 -d > /tmp/
 `sandbox exec` is root inside the env; long jobs: redirect to a log inside the env and poll it.
 
 ### B.3 Provision OpenClaw from git (aohp-agents bootstrap)
-The container template is a thin Debian with Node 24, OpenClaw and the [aohp-agents](https://github.com/injinj/aohp-agents)
+The container template is a thin Debian with Node 24, OpenClaw and the [aohp-agents](https://github.com/gramarye-os/aohp-agents)
 layer (`/opt/aohp-agents`, `aohp-bootstrap`, `aohp-secrets`, `aohp-update`). Your `~/.openclaw` (config, workspace,
 skills — **no secrets**, `${ANTHROPIC_API_KEY}`-style references in `openclaw.json`) lives in a private config repo
 (layout in the aohp-agents README; the one used here is `injinj/aohp-config-chris`), secrets age-encrypted in it as

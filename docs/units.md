@@ -7,8 +7,8 @@ Linux box: `Restart=`, ordering, timers. The AOHP Driver 0.4.0 shows them (Harne
 drives them from any host (`aohp unit <env> …`), and a `systemctl` / `journalctl` **shim** inside the container keeps
 muscle memory and scripts working.
 
-Authoritative spec: [aohp-driver docs/UNITS.md](https://github.com/injinj/aohp-driver/blob/master/docs/UNITS.md).
-Template side (shipped units, shim verbs, writing a unit): [aohp-agents docs/units.md](https://github.com/injinj/aohp-agents/blob/main/docs/units.md).
+Authoritative spec: [aohp-driver docs/UNITS.md](https://github.com/gramarye-os/aohp-driver/blob/master/docs/UNITS.md).
+Template side (shipped units, shim verbs, writing a unit): [aohp-agents docs/units.md](https://github.com/gramarye-os/aohp-agents/blob/main/docs/units.md).
 
 ## Unit files
 

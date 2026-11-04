@@ -1,6 +1,6 @@
 # Install on the Pixel 6 (oriole) from a release
 
-Release: **[oriole-23.2-20261004-build3](https://github.com/injinj/aohp-lineage/releases/tag/oriole-23.2-20261004-build3)**.
+Release: **[oriole-23.2-20261004-build3](https://github.com/gramarye-os/aohp-lineage/releases/tag/oriole-23.2-20261004-build3)**.
 This is the sequence that was actually run on 2026-10-04 (two attempts, logs `REPORT-flash-1/2.md` on chex), following
 the [LineageOS install wiki for oriole](https://wiki.lineageos.org/devices/oriole/install/) with the deviations noted.
 

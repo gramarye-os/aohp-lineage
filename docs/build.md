@@ -30,15 +30,15 @@ vendor/aohp/fetch-prebuilts.sh            # Debian template (pinned TEMPLATES_TA
 ```
 
 This writes `packages/apps/AOHPAgentDriver/rootfs/debian.tar.gz` (from the newest
-[aohp-agents `templates-*` release](https://github.com/injinj/aohp-agents/releases)),
+[aohp-agents `templates-*` release](https://github.com/gramarye-os/aohp-agents/releases)),
 `packages/apps/AOHPDriver/{Android.bp,AOHPDriver.apk,initial-package-stopped-states-aohp.xml}` and
 `packages/apps/OpenClawAndroid/{Android.bp,OpenClawAndroid.apk}` (from the
-[aohp-driver](https://github.com/injinj/aohp-driver/releases) and
+[aohp-driver](https://github.com/gramarye-os/aohp-driver/releases) and
 [openclaw](https://github.com/injinj/openclaw/releases/tag/android-aohp-2026.8.2) releases pinned at the top of the
 script). The two `packages/apps/*` dirs are not repo projects, so the script creates them.
 
 The `stock` part fetches `packages/apps/AOHPAgentDriver/AOHPAgentDriver.apk` and `rootfs/alpine.tar.gz` from the
-[injinj/AOHPAgentDriver `prebuilts-20261005` release](https://github.com/injinj/AOHPAgentDriver/releases/tag/prebuilts-20261005).
+[injinj/AOHPAgentDriver `prebuilts-20261005` release](https://github.com/gramarye-os/AOHPAgentDriver/releases/tag/prebuilts-20261005).
 Neither is installed on the phones (only `aohp-rootfs-debian` is in `PRODUCT_PACKAGES`; `AOHPAgentDriver` /
 `aohp-rootfs-alpine` belong to the Cuttlefish product), but Soong resolves every module's `apk`/`src` at analysis time,
 so a checkout without the files fails at `m`. Every fetched file is sha256-pinned (templates/stock via the release's
