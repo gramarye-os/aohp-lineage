@@ -1,8 +1,15 @@
 # Install on the Pixel 6 (oriole) from a release
 
-Release: **[oriole-23.2-20261004-build3](https://github.com/gramarye-os/aohp-lineage/releases/tag/oriole-23.2-20261004-build3)**.
-This is the sequence that was actually run on 2026-10-04 (two attempts, logs `REPORT-flash-1/2.md` on chex), following
+Current release: **[oriole-23.2-20261119-build11](https://github.com/gramarye-os/aohp-lineage/releases/tag/oriole-23.2-20261119-build11)**, the first one signed
+with our own keys. [Signed builds](#signed-builds-2026-11-19-and-later) says what that changes.
+
+This is the sequence that was actually run on 2026-10-04 with
+[build 3](https://github.com/gramarye-os/aohp-lineage/releases/tag/oriole-23.2-20261004-build3) (two attempts, logs `REPORT-flash-1/2.md` on chex), following
 the [LineageOS install wiki for oriole](https://wiki.lineageos.org/devices/oriole/install/) with the deviations noted.
+File names and version strings below are from build 3: use the ones of the release you downloaded.
+
+On 2026-11-19 the signed build went onto a phone that already ran one of our releases. Only the recovery part was done
+that day (format data, Apply from ADB, sideload: 2 min 53 s, first boot 54 s later); the fastboot steps were not repeated.
 
 ## Prerequisites
 
@@ -44,22 +51,21 @@ fastboot -s 1A071FDF6008UR reboot recovery
 
 The phone shows the LineageOS recovery. From here two paths:
 
-**Headless (build 3 recovery accepts adb without authorization):**
+**Headless (builds before 2026-11-19 only; their recovery accepts adb without authorization):**
 ```bash
 adb -s 1A071FDF6008UR devices                 # "recovery" (not "unauthorized")
 adb -s 1A071FDF6008UR reboot sideload         # state becomes "sideload"
 adb -s 1A071FDF6008UR sideload lineage-23.2-20261004-UNOFFICIAL-oriole.zip
 ```
-**On the phone (what was done in attempt 2, because the recovery then flashed was an older, adb-locked build):**
+**On the phone (the only way with a signed build, whose recovery keeps adb locked):**
 on the recovery screen pick **Apply update → Apply from ADB** (volume keys to move, power to select), then run the
-`adb sideload …` line above.
+`adb sideload …` line above. `adb devices` shows `unauthorized` or `sideload`; the sideload works either way.
 
 The host's progress counter stops around **47 %** and then prints `Total xfer: 1.00x` — that is success (the second
 half is the on-device install). Took ~3 min. The recovery screen says the install is done; then:
 
-```bash
-adb -s 1A071FDF6008UR reboot                  # or Reboot system now on the phone
-```
+Pick **Reboot system now** on the phone. (`adb -s 1A071FDF6008UR reboot` also works on builds before 2026-11-19.)
+Do not reboot before the sideload: the phone would boot the old system on the freshly reset data.
 
 ## First boot
 
@@ -79,11 +85,31 @@ adb -s 1A071FDF6008UR reboot                  # or Reboot system now on the phon
 
 Continue with [provisioning.md](provisioning.md).
 
+## Signed builds (2026-11-19 and later)
+
+From build 11 on, the releases are signed with our own keys and are marked `release-keys`. Earlier releases used the
+public AOSP test keys.
+
+- **Coming from an earlier release of ours** (build 10 or older): the data has to be wiped, because a phone only
+  accepts updates signed with the keys of the build it runs. The phone already has a Lineage recovery, so the fastboot
+  steps can be skipped: reboot to recovery, **Factory reset → Format data / factory reset**, then **Apply update →
+  Apply from ADB**, `adb sideload` the new zip, **Reboot system now**. Do not skip the format: without it the phone
+  boots, but keeps data and app updates made under the old keys.
+- **The recovery keeps adb locked**, as described above.
+- **adb in the booted system** is key-authorized, with the build host's key in the image. Other hosts get the usual
+  dialog.
+
+## Updating to a later build
+
+On a signed build, later builds arrive through **Settings → System → Updater**. It reads the list of builds from
+`https://gramarye.mcast.network`, installs the new one to the other slot in the background and asks for a reboot. Data
+and the AOHP environments are kept. This was tested on the OnePlus 13 on 2026-11-19, not yet on a Pixel 6.
+
 ## Deviations from the wiki (summary)
 
 - Factory reset via `fastboot -w` from the bootloader instead of *Factory reset → Format data* in the recovery menu.
-- `adb reboot sideload` instead of the menu's *Apply from ADB* (only works with this build's recovery because it has
-  `ro.adb.secure=0`; a stock-props Lineage recovery shows the host as `unauthorized` after a wipe).
+- Builds before 2026-11-19: `adb reboot sideload` instead of the menu's *Apply from ADB* (their recovery had
+  `ro.adb.secure=0`). A signed build's recovery shows the host as `unauthorized`, so the menu is the way in.
 - No GApps, no `vbmeta --disable-verification` step (vbmeta.img is in the release for completeness; the install
   did not flash it).
 

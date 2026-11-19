@@ -1,8 +1,13 @@
 # Install on the Solana Saga (ingot, OSOM) from a release
 
-Release: **[ingot-23.2-20261018-build1](https://github.com/gramarye-os/aohp-lineage/releases/tag/ingot-23.2-20261018-build1)**.
-This is the sequence that was actually run on 2026-10-17 (the first AOHP build for this device), following the
+Current release: **[ingot-23.2-20261119-build5](https://github.com/gramarye-os/aohp-lineage/releases/tag/ingot-23.2-20261119-build5)**, the first one signed
+with our own keys. [Signed builds](#signed-builds-2026-11-19-and-later) says what that changes.
+
+This is the sequence that was actually run on 2026-10-17 with
+[build 1](https://github.com/gramarye-os/aohp-lineage/releases/tag/ingot-23.2-20261018-build1) (the first AOHP build for this device), following the
 [LineageOS install wiki for ingot](https://wiki.lineageos.org/devices/ingot/install/) with the deviations noted.
+It was run again from [Flash](#flash) on with the signed build on two phones on 2026-11-19 (sideload 1 min 53 s, first
+boot 42 s later). File names and version strings below are from build 1: use the ones of the release you downloaded.
 The Saga is an **official LineageOS device**, so the wiki is authoritative for anything not covered here.
 
 ## Prerequisites
@@ -67,8 +72,9 @@ system, pick *Recovery Mode* from the bootloader menu with the volume keys inste
 
 ## Install from recovery
 
-The phone shows the LineageOS recovery (`adb devices` → `recovery`). Two steps on the phone's screen (volume keys
-to move, power to select):
+The phone shows the LineageOS recovery (`adb devices` → `recovery`, or `unauthorized` with a signed build; both are
+fine). Two steps on the phone's screen (volume keys to move, power to select), in this order and without a reboot in
+between:
 
 1. **Factory Reset → Format data / factory reset** — confirm. Mandatory on a first install (removes the stock
    encryption; the data partition is recreated on first boot).
@@ -82,7 +88,7 @@ adb -s O1N1XT272300327 sideload lineage-23.2-20261018-UNOFFICIAL-ingot.zip
 
 The host's progress counter parks at **~47 %** while `update_engine` applies the A/B payload to the other slot —
 watch the phone's own progress bar, not the host. It ends with `Total xfer: 1.00x` on the host and a "done"
-message on the phone. Then **Reboot system now** (or `adb -s O1N1XT272300327 reboot`).
+message on the phone. Then **Reboot system now** on the phone (the recovery of a signed build refuses `adb reboot`).
 
 ## First boot
 
@@ -118,17 +124,33 @@ Continue with [provisioning.md](provisioning.md). Two traps met while provisioni
   (and the gateway) inside the env. Rule: provision in the chroot, start units through `aohp sandbox exec` or the
   Driver.
 
+## Signed builds (2026-11-19 and later)
+
+From build 5 on, the releases are signed with our own keys and are marked `release-keys`. Earlier releases used the
+public AOSP test keys.
+
+- **Coming from an earlier release of ours** (build 4 or older): install the new release as a first install, from
+  [Flash](#flash) on, including the format in recovery. A phone only accepts updates signed with the keys of the build
+  it runs, so there is no update across the key change. Do not skip the format: one of the test phones booted without
+  it and kept an app update made under the old keys as a privileged app.
+- **The recovery keeps adb locked**: `adb devices` shows `unauthorized`, `adb reboot` is refused. `adb sideload` works
+  once the phone is in *Apply from ADB*.
+
 ## Updating to a later build
 
-Later ingot releases are data-preserving sideload updates — no fastboot, no format:
+On a signed build, later builds arrive through **Settings → System → Updater**. It reads the list of builds from
+`https://gramarye.mcast.network`, installs the new one to the other slot in the background and asks for a reboot. Data
+and the AOHP environments are kept. This was tested on the OnePlus 13 on 2026-11-19, not yet on a Saga.
+
+A release zip can also be sideloaded by hand, with no fastboot and no format:
 
 ```bash
 adb -s O1N1XT272300327 reboot sideload
 adb -s O1N1XT272300327 sideload lineage-23.2-<date>-UNOFFICIAL-ingot.zip
-adb -s O1N1XT272300327 reboot
 ```
 
-The host counter again parks at ~47 %; the phone comes back on the other slot with `/data` and the AOHP envs intact.
+The host counter again parks at ~47 %. Then pick **Reboot system now** if the phone does not reboot by itself; it
+comes back on the other slot with `/data` and the AOHP envs intact. This has not been tried on a signed build yet.
 
 ## Deviations from the wiki (summary)
 

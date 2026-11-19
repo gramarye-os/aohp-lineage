@@ -1,9 +1,14 @@
 # Install on the OnePlus 13 (dodge, CPH2655) from a release
 
-Release: **[dodge-23.2-20261004-build1](https://github.com/gramarye-os/aohp-lineage/releases/tag/dodge-23.2-20261004-build1)**.
-This is the sequence that was actually run on 2026-10-04 22:16–22:21 (script `op13-flash.sh`, log `REPORT-op13-flash.md`
+Current release: **[dodge-23.2-20261119-build26](https://github.com/gramarye-os/aohp-lineage/releases/tag/dodge-23.2-20261119-build26)**, the first one signed
+with our own keys. [Signed builds](#signed-builds-2026-11-19-and-later) says what that changes.
+
+This is the sequence that was first run on 2026-10-04 22:16–22:21 with
+[build 1](https://github.com/gramarye-os/aohp-lineage/releases/tag/dodge-23.2-20261004-build1) (script `op13-flash.sh`, log `REPORT-op13-flash.md`
 on chex), following the [LineageOS install wiki for dodge](https://wiki.lineageos.org/devices/dodge/install/) with the
-deviations noted. **Zero key presses on the phone were needed.**
+deviations noted. It was run again on 2026-11-19 with a signed build. Build 1 needed no key presses on the phone; a signed
+build needs two menu choices in the recovery. File names and version strings below are from build 1: use the ones of the
+release you downloaded.
 
 ## Prerequisites
 
@@ -72,11 +77,23 @@ done
 
 ```bash
 fastboot -s e6d11a7c reboot recovery        # accepted by this bootloader (wiki: pick "Recovery" with the volume keys)
-adb -s e6d11a7c devices                      # "recovery" after ~10 s — no authorization prompt (ro.adb.secure=0 in this build's recovery)
-adb -s e6d11a7c reboot sideload              # wiki: Apply update -> Apply from ADB
-adb -s e6d11a7c sideload lineage-23.2-20261004-UNOFFICIAL-dodge.zip   # 3.76 GB, 3 min 38 s; host shows ~47 % then "Total xfer: 1.00x" = OK
-adb -s e6d11a7c reboot                       # once 'adb devices' says "recovery" again (wiki: Reboot system now)
 ```
+
+On the recovery screen pick **Apply update → Apply from ADB** (volume keys to move, power to select). Then from the host:
+
+```bash
+adb -s e6d11a7c sideload lineage-23.2-20261004-UNOFFICIAL-dodge.zip   # 3.76 GB, 3 to 4 min; host shows ~47 % then "Total xfer: 1.00x" = OK
+```
+
+When the phone says the install is done, pick **Reboot system now**. If it asks whether to reboot to recovery to install
+more packages, answer No.
+
+Do not pick *Reboot system now* before the sideload. The phone would boot the old system on the freshly reset data, and
+the factory reset would have to be done again.
+
+Builds before 2026-11-19 had an open adb in the recovery, so `adb reboot sideload` and `adb reboot` could stand in for the
+two menu choices. The recovery of a signed build shows the host as `unauthorized`. `adb sideload` works all the same once
+the phone is in *Apply from ADB*.
 
 ## First boot
 
@@ -94,11 +111,36 @@ adb -s e6d11a7c reboot                       # once 'adb devices' says "recovery
 
 Continue with [provisioning.md](provisioning.md).
 
+## Signed builds (2026-11-19 and later)
+
+From build 26 on, the releases are signed with our own keys and are marked `release-keys`. Earlier releases used the
+public AOSP test keys.
+
+- **Coming from an earlier release of ours** (build 25 or older): install the new release as a first install, from
+  [Flash](#flash) on, including the factory reset. A phone only accepts updates signed with the keys of the build it
+  runs, so there is no update across the key change. Do not skip the reset: without it the phone boots, but keeps data
+  and app updates made under the old keys.
+- **The recovery keeps adb locked**, as described above.
+- **adb in the booted system** is as before: key-authorized, with the build host's key in the image. Other hosts get the
+  usual dialog.
+
+## Updating to a later build
+
+On a signed build, later builds arrive through **Settings → System → Updater**. It reads the list of builds from
+`https://gramarye.mcast.network`, installs the new one to the other slot in the background and asks for a reboot. Data
+and the AOHP environments are kept.
+
+Tested on 2026-11-19 from one signed build to the next: about 3 minutes over Ethernet for the 3.75 GB build. Use a good
+connection; on a weak Wi-Fi link the same download was heading for more than an hour.
+
+A release zip can also be sideloaded by hand: `adb reboot sideload` from the running system, `adb sideload <zip>`, then
+*Reboot system now* on the phone. This has not been tried on a signed build yet.
+
 ## Deviations from the wiki (summary)
 
 - Factory reset by flashing empty f2fs `userdata`/`metadata` images (because `fastboot erase userdata` hangs here).
-- `fastboot reboot recovery` and `adb reboot sideload` instead of the on-screen menu choices (possible because this build's
-  recovery has `ro.adb.secure=0`).
+- `fastboot reboot recovery` instead of picking Recovery with the volume keys. Builds before 2026-11-19 also allowed
+  `adb reboot sideload` instead of the menu, because their recovery had an open adb.
 - Full-bootloader check before flashing.
 
 ## Back to stock

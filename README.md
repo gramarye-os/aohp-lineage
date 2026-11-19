@@ -44,6 +44,10 @@ app-operating agents Google, Honor and Xiaomi ship, are in [docs/linux-tool-use.
 > (no authorization at all, also in recovery). Do not use them on a phone that
 > holds anything you care about. The dodge zip contains OnePlus proprietary vendor blobs (TheMuppets), which is why this
 > repository is private for now.
+>
+> **Signed builds:** since 2026-11-19 (oriole build 11, dodge build 26, ingot build 5) the releases are signed with our
+> own keys (`release-keys`) instead of the public AOSP test keys, and later builds arrive through *Settings → System →
+> Updater*. A phone on an earlier release has to be wiped once to move over; the install pages say how.
 
 ## What is in the ROM
 
@@ -85,9 +89,12 @@ All platform/device branches are called `lineage-23.2-aohp` = LineageOS `lineage
 2. Download the device's release assets, `sha256sum -c SHA256SUMS` (dodge: `cat …zip.part0 …zip.part1 > …zip` first).
 3. Follow [docs/install-oriole.md](docs/install-oriole.md), [docs/install-dodge.md](docs/install-dodge.md) or
    [docs/install-ingot.md](docs/install-ingot.md): fastboot the
-   boot images → Lineage recovery → factory reset → `adb sideload <zip>` → reboot.
+   boot images → Lineage recovery → factory reset → *Apply update → Apply from ADB* → `adb sideload <zip>` →
+   *Reboot system now*.
 4. First boot: adb is on, no prompt; `aohp-containerd` and the Driver bridge are already running. Continue with
    [docs/provisioning.md](docs/provisioning.md) to create the agent container, provision OpenClaw and pair the app.
+5. Later builds: *Settings → System → Updater* on the phone. Coming from a release older than 2026-11-19, start again
+   at step 2 instead: the signing keys changed, so that move needs the factory reset.
 
 ## Credits and licenses
 
