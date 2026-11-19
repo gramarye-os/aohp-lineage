@@ -4,6 +4,10 @@ Everything below was run on `chex` (Fedora, 32 threads, 123 GB RAM) on 2026-10-0
 the build scripts, not a transcription of the wiki. Disk: ~65 GB `.repo`, ~91 GB working tree, 43 GB `out/` for dodge
 (incl. the in-tree kernel), ~15 GB for oriole; plus the kernel tree `out-kernel/` for oriole (22 GB).
 
+Since 2026-11-04 the release builds are made on a second host (`gru`) by a GitHub Actions workflow that runs the same
+steps: sync, `fetch-prebuilts.sh`, `breakfast`, `m bacon`, then it stages the artifacts and publishes the release.
+Since 2026-11-19 those builds are signed with our own keys, see [Signing](#signing).
+
 ## 1. Sync the tree
 
 ```bash
@@ -16,16 +20,18 @@ repo sync -c -j8 --no-tags --no-clone-bundle --optimized-fetch --prune --retry-f
 
 - The partial-clone flags work with Lineage's manifest (61 min for the base tree on a fast link; the 5.5 GB
   `android_frameworks_base` pack dominates). The dodge additions synced in 6 min.
-- `vendor/aohp` is a **private** repo: `repo sync` needs a GitHub credential with access to the injinj account
-  (`gh auth login` + `gh auth setup-git`, or a `~/.git-credentials` entry). Everything else is public.
-- The manifest replaces four LineageOS platform projects (`build/make`, `system/core`, `system/sepolicy`,
-  `frameworks/base`) with the injinj `lineage-23.2-aohp` branches and adds the Pixel 6 / OnePlus 13 device trees,
-  kernels and TheMuppets vendor repos. No `roomservice` additions are needed (`breakfast` found everything present).
+- `vendor/aohp` is a **private** repo in the gramarye-os organisation: `repo sync` needs a GitHub credential with access
+  to it (`gh auth login` + `gh auth setup-git`, or a `~/.git-credentials` entry). Everything else is public.
+- The manifest replaces a handful of LineageOS projects (among them `build/make`, `system/core`, `system/sepolicy`,
+  `frameworks/base`) with our `lineage-23.2-aohp` branches and adds the Pixel 6, OnePlus 13 and Solana Saga device trees,
+  kernels and vendor repos. Its remote is still named `injinj`; it points at `github.com/gramarye-os`. No `roomservice`
+  additions are needed (`breakfast` found everything present).
 
 ## 2. Fetch the prebuilts that are not in git
 
 ```bash
-vendor/aohp/fetch-prebuilts.sh            # Debian template (pinned TEMPLATES_TAG, currently templates-20261005b) + AOHPDriver.apk (v0.3.0) + OpenClawAndroid.apk + stock prebuilts, all sha256-verified
+vendor/aohp/fetch-prebuilts.sh            # Debian template + AOHPDriver.apk + OpenClawAndroid.apk + Tessera + F-Droid + stock prebuilts, all sha256-verified; the pinned versions are at the top of the script
+# vendor/aohp/fetch-prebuilts.sh debian-gpu apks stock fdroid   # what the dodge and ingot release builds use: the Debian template with Mesa for Adreno GPUs
 # vendor/aohp/fetch-prebuilts.sh fedora arch   # optional extra templates; aohp.mk enables them when the file exists
 ```
 
@@ -38,7 +44,7 @@ This writes `packages/apps/AOHPAgentDriver/rootfs/debian.tar.gz` (from the newes
 script). The two `packages/apps/*` dirs are not repo projects, so the script creates them.
 
 The `stock` part fetches `packages/apps/AOHPAgentDriver/AOHPAgentDriver.apk` and `rootfs/alpine.tar.gz` from the
-[injinj/AOHPAgentDriver `prebuilts-20261005` release](https://github.com/gramarye-os/AOHPAgentDriver/releases/tag/prebuilts-20261005).
+[gramarye-os/AOHPAgentDriver `prebuilts-20261005` release](https://github.com/gramarye-os/AOHPAgentDriver/releases/tag/prebuilts-20261005).
 Neither is installed on the phones (only `aohp-rootfs-debian` is in `PRODUCT_PACKAGES`; `AOHPAgentDriver` /
 `aohp-rootfs-alpine` belong to the Cuttlefish product), but Soong resolves every module's `apk`/`src` at analysis time,
 so a checkout without the files fails at `m`. Every fetched file is sha256-pinned (templates/stock via the release's
@@ -49,7 +55,6 @@ Tags recorded in `rootfs/.templates-release`, `rootfs/.stock-release`, `AOHPDriv
 
 ```bash
 cd ~/lineage/android
-export WITH_ADB_INSECURE=true      # see below
 source build/envsetup.sh
 
 # Pixel 6
@@ -66,15 +71,18 @@ m -j10 bacon                       # -> out/target/product/dodge/lineage-23.2-<d
 
 `brunch oriole` / `brunch dodge` is the one-step equivalent of `breakfast` + `m bacon`.
 
-**`WITH_ADB_INSECURE=true`** is Lineage's own knob (`vendor/lineage/config/common.mk`): without it a userdebug build
-gets `ro.adb.secure=1` and `PRODUCT_NOT_DEBUGGABLE_IN_USERDEBUG` (→ `ro.debuggable=0`), adb is off at first boot, the
-RSA prompt appears, and **the Lineage recovery (same props, vendor_boot ramdisk) refuses adb** — which is how the first
-Pixel flash attempt got stuck in recovery with `unauthorized`. With it, `ro.adb.secure=0` and
-`post_process_props.py` auto-adds `persist.sys.usb.config=adb`; `vendor/aohp/aohp.mk` adds the latter to the product
-partition as well. It must be in the environment before `breakfast` (evaluated when `common.mk` is parsed, before
-`aohp.mk` is inherited — it cannot be set from `aohp.mk`). `adb root` additionally needs *Developer options → Rooted
-debugging* on the phone (Lineage's `adbroot_service`), which is not needed for AOHP work (`aohp sandbox exec` is root
-inside the env).
+**adb.** Since oriole build 6 / dodge build 4 (2026-10-06) this is a normal Lineage userdebug build: `ro.adb.secure=1`,
+`ro.debuggable=0`. `vendor/aohp/aohp.mk` turns adb on at boot (`persist.sys.usb.config=adb`) and puts the adb public
+key(s) in `vendor/aohp/adb_keys` into the image (`PRODUCT_ADB_KEYS`), so those hosts get adb from first boot without the
+dialog and every other host gets the usual authorization prompt. The file holds our build host's key: **replace it
+with your own `~/.android/adbkey.pub` before building.** The Lineage recovery of these builds shows the host as
+`unauthorized`; a sideload is started from its menu (see the install pages and [known-issues.md](known-issues.md)).
+`adb root` additionally needs *Developer options → Rooted debugging* on the phone (Lineage's `adbroot_service`), which
+is not needed for AOHP work (`aohp sandbox exec` is root inside the env).
+
+The first builds (oriole ≤ build 5, dodge ≤ build 3) were made with Lineage's `WITH_ADB_INSECURE=true` instead
+(`ro.adb.secure=0`: no authorization at all, also in the recovery). That knob has to be in the environment before
+`breakfast`; it is no longer used.
 
 ### Build times on chex (`-j10`, systemd `CPUQuota=1000%`, no ccache)
 
@@ -105,21 +113,81 @@ and poll the log; a terminal session that dies takes the build with it.
   `initial-package-stopped-states-aohp.xml` (sysconfig). Verified with a fresh secondary user.
 - Soong resolves `prebuilt_etc.src` for every module at analysis time, so an optional template module whose tarball is
   absent breaks *every* build — the fedora/arch modules are `soong_config`-gated and disabled unless `aohp.mk` sees the file.
-- Lineage's default dev platform key (`build/make/target/product/security/platform.*`) is byte-identical to the AOHP
-  tree's, so the platform-signed Driver keeps its signature with no `PRODUCT_DEFAULT_DEV_CERTIFICATE` override.
+- The Driver is signed with the platform key of the build. Without your own keys that is Lineage's default dev key
+  (`build/make/target/product/security/platform.*`, byte-identical to the AOHP tree's); with
+  `vendor/lineage-priv/keys` it is yours. See [Signing](#signing).
+
+### Signing
+
+A tree without `vendor/lineage-priv/keys` builds with the public AOSP test keys: the result is marked `test-keys`, and a
+phone running it accepts any update signed with those public keys. Our releases since 2026-11-19 are signed with our own
+keys instead. LineageOS has this built in:
+
+```bash
+cp -r lineage/scripts/lineage-priv-template vendor/lineage-priv/keys
+cd vendor/lineage-priv/keys && ./keys.sh        # 89 key pairs, no passwords; edit the subject in make_key.sh first if you want your own name in them
+```
+
+`vendor/lineage/config/common.mk` includes `vendor/lineage-priv/keys/keys.mk` when it exists. A normal `m bacon` then
+signs the apps, the APEXes and the OTA zip with these keys and marks the build `release-keys`; the platform-signed
+Driver gets the new platform key with no change in `vendor/aohp`.
+
+- Keep the directory out of git and keep a backup. A phone only accepts updates signed with the keys of the build it
+  runs, so losing the keys means a factory reset for every phone on those builds.
+- For the same reason a phone cannot move between a test-key build, one of our releases and a build signed with your
+  own keys without a factory reset.
+- Our keys are not published. If you sign your own builds, change `lineage.updater.uri` in `vendor/aohp/aohp.mk` as
+  well: it points the Updater at our server, and the builds there are signed with our keys, not yours.
 
 ## 4. Verify the artifacts
 
 `sha256sum` the zip and images and keep the list (the releases' `SHA256SUMS` were produced this way). Useful checks on
 the zip: `unzip -p <zip> META-INF/com/android/metadata` (`ota-type=AB`, `pre-device`, `post-build`), and
 `unzip -l <zip> | grep -E 'aohp|AOHPDriver|OpenClawAndroid'` is not possible for a payload OTA — inspect
-`out/target/product/<device>/system/` instead (`system/app/AOHPDriver`, `system/app/OpenClawAndroid`,
-`system/bin/aohp-containerd`, `system/etc/aohp/`, `system/etc/sysconfig/initial-package-stopped-states-aohp.xml`) and
-`system_ext/etc/build.prop` for `ro.adb.secure=0`.
+`out/target/product/<device>/system/` instead (`system/priv-app/AOHPDriver`, `system/app/OpenClawAndroid`,
+`system/bin/aohp-containerd`, `system/etc/aohp/`, `system/etc/sysconfig/initial-package-stopped-states-aohp.xml`),
+`system_ext/etc/build.prop` for `ro.adb.secure=1`, `system/build.prop` for `ro.build.tags` (`test-keys` or
+`release-keys`) and `product/etc/build.prop` for `lineage.updater.uri`.
+
+The out directory collects one `lineage-23.2-<date>-UNOFFICIAL-<device>.zip` name per build day, and all of them are
+hard links to the newest zip. Take the name that matches `ro.lineage.version` in `product/etc/build.prop`.
 
 ## 5. Publishing a build
 
 - Zip ≤ 2 GiB (oriole, 1.98 GB): upload as-is. Zip > 2 GiB (dodge, 3.76 GB): `split -b 1900M -d -a 1 <zip> <zip>.part`
   and publish the parts + a `SHA256SUMS` that lists the whole zip and each part (see the dodge release).
-- `gh release create <tag> --repo injinj/aohp-lineage --target main --notes-file notes.md SHA256SUMS *.img <zip or parts>`,
+- `gh release create <tag> --repo gramarye-os/aohp-lineage --target main --notes-file notes.md SHA256SUMS *.img <zip or parts>`,
   detached (a 3.8 GB upload takes a while); verify with `gh release view <tag> --json assets` that the sizes match.
+
+### Offering a build through the Updater
+
+The images set `lineage.updater.uri` to `https://gramarye.mcast.network/api/v2/devices/{device}/builds`, so the stock
+LineageOS Updater asks that URL for a list of builds. What the server has to do:
+
+- Answer over HTTPS, and serve the list itself without a redirect (the Updater does not follow one for the list).
+- Support range requests for the zip: the Updater streams the payload straight out of it.
+- Return a JSON array with one entry per build:
+
+  ```json
+  [{
+    "datetime": 1795113695,
+    "type": "UNOFFICIAL",
+    "version": "23.2",
+    "files": [{
+      "filename": "lineage-23.2-20261119-UNOFFICIAL-dodge.zip",
+      "url": "https://gramarye.mcast.network/dodge/<build>/lineage-23.2-20261119-UNOFFICIAL-dodge.zip",
+      "size": 3749884583,
+      "sha256": "95aee9e2d42ea1e07c5a31eda2afb4884947e38720198754c36ca8ea84e18841",
+      "os_patch_level": "2026-11-01",
+      "os_sdk_level": 36,
+      "ota_property_files": "<the ota-property-files line of META-INF/com/android/metadata in the zip>"
+    }]
+  }]
+  ```
+
+  `datetime` is `post-timestamp` from the same metadata file (= `ro.build.date.utc` of the build).
+
+A phone is offered a build when its `datetime` is newer than the installed build and `type` and `version` match
+`ro.lineage.releasetype` and `ro.lineage.build.version`. It installs it only if the zip is signed with the keys of the
+build it runs. Our server is a small static file server on the build host; the list is rewritten by the build pipeline
+when a build is to be offered.

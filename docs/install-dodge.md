@@ -6,9 +6,9 @@ with our own keys. [Signed builds](#signed-builds-2026-11-19-and-later) says wha
 This is the sequence that was first run on 2026-10-04 22:16–22:21 with
 [build 1](https://github.com/gramarye-os/aohp-lineage/releases/tag/dodge-23.2-20261004-build1) (script `op13-flash.sh`, log `REPORT-op13-flash.md`
 on chex), following the [LineageOS install wiki for dodge](https://wiki.lineageos.org/devices/dodge/install/) with the
-deviations noted. It was run again on 2026-11-19 with a signed build. Build 1 needed no key presses on the phone; a signed
-build needs two menu choices in the recovery. File names and version strings below are from build 1: use the ones of the
-release you downloaded.
+deviations noted. It was run again on 2026-11-19 with a signed build. Build 1 needed no key presses on the phone; builds
+since 2026-10-06 (build 4) need two menu choices in the recovery. File names and version strings below are from build 1:
+use the ones of the release you downloaded.
 
 ## Prerequisites
 
@@ -91,9 +91,9 @@ more packages, answer No.
 Do not pick *Reboot system now* before the sideload. The phone would boot the old system on the freshly reset data, and
 the factory reset would have to be done again.
 
-Builds before 2026-11-19 had an open adb in the recovery, so `adb reboot sideload` and `adb reboot` could stand in for the
-two menu choices. The recovery of a signed build shows the host as `unauthorized`. `adb sideload` works all the same once
-the phone is in *Apply from ADB*.
+Builds before 2026-10-06 (build 3 and older) had an open adb in the recovery, so `adb reboot sideload` and `adb reboot`
+could stand in for the two menu choices. Since build 4 the recovery shows the host as `unauthorized`
+([known-issues.md](known-issues.md)). `adb sideload` works all the same once the phone is in *Apply from ADB*.
 
 ## First boot
 
@@ -120,9 +120,8 @@ public AOSP test keys.
   [Flash](#flash) on, including the factory reset. A phone only accepts updates signed with the keys of the build it
   runs, so there is no update across the key change. Do not skip the reset: without it the phone boots, but keeps data
   and app updates made under the old keys.
-- **The recovery keeps adb locked**, as described above.
-- **adb in the booted system** is as before: key-authorized, with the build host's key in the image. Other hosts get the
-  usual dialog.
+- **adb** is as before: key-authorized in the booted system, with the build host's key in the image (other hosts get
+  the usual dialog), and `unauthorized` in the recovery.
 
 ## Updating to a later build
 
@@ -139,7 +138,7 @@ A release zip can also be sideloaded by hand: `adb reboot sideload` from the run
 ## Deviations from the wiki (summary)
 
 - Factory reset by flashing empty f2fs `userdata`/`metadata` images (because `fastboot erase userdata` hangs here).
-- `fastboot reboot recovery` instead of picking Recovery with the volume keys. Builds before 2026-11-19 also allowed
+- `fastboot reboot recovery` instead of picking Recovery with the volume keys. Builds before 2026-10-06 also allowed
   `adb reboot sideload` instead of the menu, because their recovery had an open adb.
 - Full-bootloader check before flashing.
 

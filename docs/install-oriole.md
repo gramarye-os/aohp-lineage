@@ -51,20 +51,20 @@ fastboot -s 1A071FDF6008UR reboot recovery
 
 The phone shows the LineageOS recovery. From here two paths:
 
-**Headless (builds before 2026-11-19 only; their recovery accepts adb without authorization):**
+**Headless (builds before 2026-10-06 only, build 5 and older; their recovery accepts adb without authorization):**
 ```bash
 adb -s 1A071FDF6008UR devices                 # "recovery" (not "unauthorized")
 adb -s 1A071FDF6008UR reboot sideload         # state becomes "sideload"
 adb -s 1A071FDF6008UR sideload lineage-23.2-20261004-UNOFFICIAL-oriole.zip
 ```
-**On the phone (the only way with a signed build, whose recovery keeps adb locked):**
+**On the phone (the way since build 6, whose recovery shows the host as `unauthorized`):**
 on the recovery screen pick **Apply update → Apply from ADB** (volume keys to move, power to select), then run the
 `adb sideload …` line above. `adb devices` shows `unauthorized` or `sideload`; the sideload works either way.
 
 The host's progress counter stops around **47 %** and then prints `Total xfer: 1.00x` — that is success (the second
 half is the on-device install). Took ~3 min. The recovery screen says the install is done; then:
 
-Pick **Reboot system now** on the phone. (`adb -s 1A071FDF6008UR reboot` also works on builds before 2026-11-19.)
+Pick **Reboot system now** on the phone. (`adb -s 1A071FDF6008UR reboot` also works on builds before 2026-10-06.)
 Do not reboot before the sideload: the phone would boot the old system on the freshly reset data.
 
 ## First boot
@@ -73,7 +73,8 @@ Do not reboot before the sideload: the phone would boot the old system on the fr
   flashed by hand are overwritten with identical copies). `sys.boot_completed=1` ~45 s after the reboot.
 - The bootloader shows the usual **orange state / "Your device software can't be checked for corruption"** warning for
   5 s on every boot (unlocked bootloader) — expected.
-- **adb is on immediately, no "Allow USB debugging?" dialog** (`ro.adb.secure=0`, `persist.sys.usb.config=adb`).
+- **adb is on immediately** (`persist.sys.usb.config=adb`). Since build 6 it is key-authorized (`ro.adb.secure=1`): our
+  build host is let in by a key in the image, any other host gets the "Allow USB debugging?" dialog.
   Check: `adb -s 1A071FDF6008UR shell getprop ro.lineage.version` → `23.2-20261004-UNOFFICIAL-oriole`,
   `getenforce` → `Enforcing`, `pm list packages | grep -E 'aohp|openclaw'` → `org.aohp.driver`, `ai.openclaw.app`,
   `ps -A | grep aohp-containerd` running as root, and `ss -ltnp` shows `127.0.0.1:6666` owned by `org.aohp.driver`
@@ -95,9 +96,8 @@ public AOSP test keys.
   steps can be skipped: reboot to recovery, **Factory reset → Format data / factory reset**, then **Apply update →
   Apply from ADB**, `adb sideload` the new zip, **Reboot system now**. Do not skip the format: without it the phone
   boots, but keeps data and app updates made under the old keys.
-- **The recovery keeps adb locked**, as described above.
-- **adb in the booted system** is key-authorized, with the build host's key in the image. Other hosts get the usual
-  dialog.
+- **adb** is as on every build since build 6: key-authorized in the booted system, with the build host's key in the
+  image (other hosts get the usual dialog), and `unauthorized` in the recovery.
 
 ## Updating to a later build
 
@@ -108,8 +108,8 @@ and the AOHP environments are kept. This was tested on the OnePlus 13 on 2026-11
 ## Deviations from the wiki (summary)
 
 - Factory reset via `fastboot -w` from the bootloader instead of *Factory reset → Format data* in the recovery menu.
-- Builds before 2026-11-19: `adb reboot sideload` instead of the menu's *Apply from ADB* (their recovery had
-  `ro.adb.secure=0`). A signed build's recovery shows the host as `unauthorized`, so the menu is the way in.
+- Builds before 2026-10-06: `adb reboot sideload` instead of the menu's *Apply from ADB* (their recovery had
+  `ro.adb.secure=0`). Since build 6 the recovery shows the host as `unauthorized`, so the menu is the way in.
 - No GApps, no `vbmeta --disable-verification` step (vbmeta.img is in the release for completeness; the install
   did not flash it).
 

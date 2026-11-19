@@ -51,7 +51,7 @@ aohp sandbox exec oc bash -c "echo $(base64 -w0 myscript.sh) | base64 -d > /tmp/
 The container template is a thin Debian with Node 24, OpenClaw and the [aohp-agents](https://github.com/gramarye-os/aohp-agents)
 layer (`/opt/aohp-agents`, `aohp-bootstrap`, `aohp-secrets`, `aohp-update`). Your `~/.openclaw` (config, workspace,
 skills — **no secrets**, `${ANTHROPIC_API_KEY}`-style references in `openclaw.json`) lives in a private config repo
-(layout in the aohp-agents README; the one used here is `injinj/aohp-config-chris`), secrets age-encrypted in it as
+(layout in the aohp-agents README; the one used here is `gramarye-os/aohp-config-chris`), secrets age-encrypted in it as
 `secrets/env.age`.
 
 Inside the env (this is `oc-bootstrap.sh` from the runs, minus the secret delivery — see the note below):
@@ -155,4 +155,8 @@ died. With the build-4 sepolicy sshd needs no `LD_PRELOAD` shim.
 
 `aohp sandbox exec oc aohp-update` (= `git pull` of `/opt/aohp-agents` + re-run the installers listed in your
 config repo's `aohp/agents`); `npm i -g openclaw@<version>` for OpenClaw itself. A new ROM build (new template) does not
-touch existing envs in `/data`.
+touch existing envs in `/data`, whether it arrives through the Updater or a sideload: after an Updater install on
+2026-11-19 the env's units came back on the next boot.
+
+A factory reset removes the envs with everything else in `/data`. That includes the one-time move from a release before
+2026-11-19 to a signed one (see the install pages): create and provision the env again afterwards, from section A or B.

@@ -1,6 +1,43 @@
-# Known issues and caveats (2026-10-06 builds: oriole build-6, dodge build-4; 2026-10-05: oriole build-5, dodge build-3)
+# Known issues and caveats (2026-11-19 builds: oriole build-11, dodge build-26, ingot build-5; older sections below)
+
+## 2026-11-19 builds (oriole build-11, dodge build-26, ingot build-5)
+
+What changed:
+
+- **Signed with our own keys** (`release-keys`). Every earlier release was signed with the public AOSP test keys, so a
+  phone on one of them accepted any update signed with those keys. A phone only accepts updates signed with the keys of
+  the build it runs, so moving from an earlier release to these needs one factory reset (see the install pages).
+- **Updates through the Updater.** `lineage.updater.uri` points *Settings → System → Updater* at
+  `https://gramarye.mcast.network`. Tested on the OnePlus 13 from one signed build to the next: about 3 minutes over
+  Ethernet, data and envs kept. Not yet tried on the Pixel 6 or the Saga.
+- **Recovery adb is still `unauthorized`**, as on every build since 2026-10-06; the key-path item under "Queued" below is
+  still open. A first install therefore needs two menu choices on the phone (*Apply update → Apply from ADB*, later
+  *Reboot system now*).
+- Component versions are in the [README](../README.md#what-is-in-the-rom).
+
+Seen while installing these builds, not explained yet:
+
+- **A signed build boots on the data of a test-key build** instead of refusing it. On one Saga the format was skipped
+  by mistake: the phone booted with its old setup, and an update of the Driver that had been installed under the old
+  test platform key stayed the active, privileged copy (it then crashed at start). The format is not optional for this
+  move, and nothing on the phone enforces it.
+- **SELinux denials at first boot on fresh data.** OnePlus 13: none in the first minute. Saga: two
+  (`servicemanager` → `usbd` binder call, `mediaprovider_app` → `fuse_device` open). Pixel 6: about 200 in the first
+  minutes, all from vendor domains (`hal_graphics_composer_default` → `vendor_log_file`, `insmod-sh` →
+  `vendor_regmap_debugfs`, `audioserver` → `vendor_default_prop`, and others). None names an AOHP domain. They were not
+  compared with the previous builds, so it is not known whether they are new.
+- **Update download speed is the link's.** On a weak 802.11n link the 3.75 GB dodge build came in at 0.7 MB/s, which
+  is over an hour; on a dock's Ethernet at about 20 MB/s. A cancelled install resumes where it stopped.
+- **One update server.** The list and the zips come from a single host. When it is down the Updater shows no builds;
+  the release assets on GitHub are the fallback (sideload).
+- **Pixel 6 bootloader on one USB port.** After `adb reboot bootloader` the phone failed to enumerate on a 10 Gb/s
+  USB-C port of the host (`device descriptor read/8, error -110`), while the recovery and the booted system worked on
+  the same port. Not looked into; the install that day went through the recovery only.
 
 ## Dev-build security posture
+**Since 2026-11-19** the releases are signed with our own keys; before that with the public AOSP test keys (see above).
+The adb settings below did not change with that.
+
 **Since oriole build-6 / dodge build-4 (2026-10-06):** normal Lineage userdebug — `ro.adb.secure=1`, `ro.debuggable=0`,
 `persist.sys.usb.config=adb`. The build host's adb public key (`vendor/aohp/adb_keys` = chex `~/.android/adbkey.pub`,
 `PRODUCT_ADB_KEYS`) is installed as `/product/etc/security/adb_keys` (`/adb_keys` symlinks to it), so chex gets adb from first

@@ -72,9 +72,8 @@ system, pick *Recovery Mode* from the bootloader menu with the volume keys inste
 
 ## Install from recovery
 
-The phone shows the LineageOS recovery (`adb devices` → `recovery`, or `unauthorized` with a signed build; both are
-fine). Two steps on the phone's screen (volume keys to move, power to select), in this order and without a reboot in
-between:
+The phone shows the LineageOS recovery (`adb devices` shows `recovery` or `unauthorized`; both are fine). Two steps on
+the phone's screen (volume keys to move, power to select), in this order and without a reboot in between:
 
 1. **Factory Reset → Format data / factory reset** — confirm. Mandatory on a first install (removes the stock
    encryption; the data partition is recreated on first boot).
@@ -88,7 +87,8 @@ adb -s O1N1XT272300327 sideload lineage-23.2-20261018-UNOFFICIAL-ingot.zip
 
 The host's progress counter parks at **~47 %** while `update_engine` applies the A/B payload to the other slot —
 watch the phone's own progress bar, not the host. It ends with `Total xfer: 1.00x` on the host and a "done"
-message on the phone. Then **Reboot system now** on the phone (the recovery of a signed build refuses `adb reboot`).
+message on the phone. Then **Reboot system now** on the phone (a recovery that shows the host as `unauthorized`
+refuses `adb reboot`).
 
 ## First boot
 
@@ -133,8 +133,8 @@ public AOSP test keys.
   [Flash](#flash) on, including the format in recovery. A phone only accepts updates signed with the keys of the build
   it runs, so there is no update across the key change. Do not skip the format: one of the test phones booted without
   it and kept an app update made under the old keys as a privileged app.
-- **The recovery keeps adb locked**: `adb devices` shows `unauthorized`, `adb reboot` is refused. `adb sideload` works
-  once the phone is in *Apply from ADB*.
+- **adb in the recovery** is `unauthorized`, as on the earlier builds: `adb reboot` is refused there, `adb sideload`
+  works once the phone is in *Apply from ADB*.
 
 ## Updating to a later build
 
